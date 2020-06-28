@@ -1,0 +1,89 @@
+{% extends 'information/base.html' %}
+{% load static %}
+{% block title %}Districts{% endblock %}
+
+{% block body %}
+    <h2 align='center'>Bangladesh all Districts</h2>
+    <br>
+
+    <form method='POST'>
+        {% csrf_token %}
+        <select id='query' name='query' onchange='filter()' class="" name='dropdown1'>
+            <option value="all">Show All</option>
+            <option value="visited">Visited</option>
+            <option value="population50+">Population > 50</option>
+            <option value="education50+">Education > 50</option>
+            <option value="dhaka">Dhaka</option>
+        </select>
+    </form>
+    <br><br>
+    <table id='district_table' class="table table-striped">
+        <tr>
+            <th>Name</th>
+            <th>Division</th>
+            <th>Education rate</th>
+            <th>Populataion rate </th>
+            <th>Visited </th>
+        </tr>
+        {% for district in districts %}
+            <tr>
+                <td>{{ district.name }}</td>
+                <td>{{ district.Divisions }}</td>
+                <td>{{ district.education_rate }}</td>
+                <td>{{ district.population_density }}</td>
+                {% if district.visited %}
+                    <td>Yes</td>
+                    {% else %}
+                    <td>No</td>
+                {% endif %}
+            </tr>
+        {% endfor %}
+    </table>
+    {% block javascript %}
+        <script type="text/javascript">
+            function filter(){
+                
+                var msg = document.getElementById('query').value;
+
+                $.ajax({
+                    type: "POST",
+                    url:  'filter/',
+                    data: {
+                        'msg': msg,
+                        csrfmiddlewaretoken: '{{csrf_token}}'
+                    },
+                    datatype: 'json',
+                    success: function (data){
+                        console.log(data.data.name[0]);
+
+                        var table = document.getElementById("district_table");
+                        //or use :  var table = document.all.tableid;
+                        for(var i = table.rows.length - 1; i > 0; i--)
+                        {
+                            table.deleteRow(i);
+                        }
+
+                        for(var i = 0; i < data.data.name.length; i++)
+                        {
+                            var row = table.insertRow(table.rows.length);
+                            var cell0 = row.insertCell(0);
+                            var cell1 = row.insertCell(1);
+                            var cell2 = row.insertCell(2);
+                            var cell3 = row.insertCell(3);
+                            var cell4 = row.insertCell(4); 
+                            
+                            cell0.innerHTML = data.data.name[i];
+                            cell1.innerHTML = data.data.division[i];
+                            cell2.innerHTML = data.data.education[i];
+                            cell3.innerHTML = data.data.population[i];
+                            cell4.innerHTML = data.data.visited[i];
+                        }
+
+                        
+                    }       
+                });
+            }
+        </script>
+    {% endblock javascript %}
+    
+{% endblock body %}
